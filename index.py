@@ -1,4 +1,4 @@
-import py5, json, os, datetime, random
+import py5, json, os, random
 from pathlib import Path
 
 frame_rate = 60
@@ -41,10 +41,14 @@ def first_setup():
 		settings = json.load(f)
 		if settings['todo_data'] == '':
 			display = 'loading'
-			processing = {'process': 'create_to_do_file', 'next_screen': 'todo', 'wait_time': random.randint(10, 10)}
+			processing = {'process': 'create_to_do_file', 'next_screen': 'todo', 'wait_time': random.randint(15, 60)}
 			# todo_list.json作成
 			with open(current_dir + '/todo_list.json', mode='w', encoding='utf-8') as f:
-				json.dump({}, f, indent = 2)
+				json.dump({
+					"todo_name": "My ToDo",
+					"todo_description": "This is a description of my ToDo item",
+					"todo_list": []
+				}, f, indent = 2)
 				f.close()
 			print('todo_list.json generated.')
 			# setting.jsonの内容取得
@@ -121,7 +125,7 @@ def draw():
 		py5.line(0, 40, py5.width, 40)
 		# todo add button
 		py5.fill(255, 255, 255)
-		if py5.width - 50 < py5.mouse_x < py5.width - 20 and 5 < py5.mouse_y < 35:
+		if py5.width - 50 < py5.mouse_x < py5.width - 20 and 5 < py5.mouse_y < 35 and processing == {}:
 			py5.fill(255, 165, 0)
 		py5.rect_mode(py5.CORNER)
 		py5.rect(py5.width - 50, 5, 30, 30)
@@ -136,7 +140,7 @@ def draw():
 			for i in range(len(todo["todo_list"])):
 				list_y = 100 + i * 75
 				py5.fill(255, 255, 255)
-				if 10 < py5.mouse_x < 30 and list_y - 10 < py5.mouse_y < list_y + 10:
+				if 10 < py5.mouse_x < 30 and list_y - 10 < py5.mouse_y < list_y + 10 and processing == {}:
 					py5.fill(255, 165, 0)
 				py5.ellipse(20, list_y, 10, 10)
 				# todo name
