@@ -1,14 +1,23 @@
-import py5, json, os, random
+import py5, json, os, random, copy, math
 from pathlib import Path
 
 frame_rate = 60
+
+mouse_info = {
+	'x': 0,
+	'y': 0,
+	'button_pressed': False,
+	'button_released': False
+}
 
 processing = {}
 popup= []
 display = ''
 sub_display = ''
 todo_list_path = ''
+update_todo = {}
 input_text = ''
+cool_time = 0
 add_todo_data = {
 	"todo_name": "",
 	"note": "",
@@ -24,6 +33,12 @@ setting_json_data = {
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 print('Current Directory: ' + current_dir)
+
+def mouse_pressed():
+	mouse_info['button_pressed'] = True
+
+def mouse_released():
+	mouse_info['button_released'] = True
 
 def first_setup():
 	global display, frame_rate, processing, popup, todo_list_path, current_settings
@@ -79,6 +94,14 @@ def first_setup():
 		print(current_settings)
 		f.close()
 
+def end_process():
+	global mouse_info, cool_time
+	# mouse info reset
+	mouse_info['button_pressed'] = False
+	mouse_info['button_released'] = False
+	if cool_time > 0:
+		cool_time -= 1
+
 def setup():
 	py5.size(800, 800, py5.P2D)
 	py5.frame_rate(frame_rate)
@@ -86,7 +109,7 @@ def setup():
 	py5.text('Now Loading...', py5.width / 2, py5.height / 2)		
 
 def draw():
-	global display, processing, current_settings, display_time, sub_display, input_text, add_todo_data
+	global display, processing, current_settings, display_time, sub_display, input_text, add_todo_data, update_todo, mouse_info, cool_time
 	# reset
 	py5.background(255)
 	py5.text_align(py5.CENTER, py5.CENTER)
@@ -159,14 +182,20 @@ def draw():
 				py5.text_align(py5.LEFT, py5.CENTER)
 				py5.text(todo["todo_list"][i]["date"], 40, list_y - 20)
 				# todo delete button
-				if py5.is_mouse_pressed and py5.mouse_button == py5.LEFT and 10 < py5.mouse_x < 30 and list_y - 10 < py5.mouse_y < list_y + 10:
-					del todo["todo_list"][i]
+				if mouse_info['button_released'] == True and py5.mouse_button == py5.LEFT and 10 < py5.mouse_x < 30 and list_y - 10 < py5.mouse_y < list_y + 10 and cool_time == 0:
+					update_todo = copy.deepcopy(todo)
+					update_todo["todo_list"].pop(i)
+					print('update:', todo)
 					display_time = 0
+					cool_time = math.floor(current_settings['frame_rate'] / 10)
+					
 			f.close()
-		# todo_list.json更新
-		with open(current_dir + current_settings["todo_data"], mode='w', encoding='utf-8') as f:
-			json.dump(todo, f, indent = 2, ensure_ascii = False)
-			f.close()
+			# todo_list.json更新
+			if update_todo != {}:
+				with open(current_dir + current_settings["todo_data"], mode='w', encoding='utf-8') as f:
+					json.dump(update_todo, f, indent = 2, ensure_ascii = False)
+					update_todo = {}
+					f.close()
 		# todo追加ボタン(押したら)
 		if py5.is_mouse_pressed and py5.mouse_button == py5.LEFT and py5.width - 50 < py5.mouse_x < py5.width - 20 and 5 < py5.mouse_y < 35 and sub_display == '':
 			sub_display = 'add_todo'
@@ -259,6 +288,7 @@ def draw():
 				py5.text_align(py5.CENTER, py5.BOTTOM)
 				py5.text(input_text, py5.width / 2, py5.height / 2 - 5)
 		display_time += 1
+		end_process()
 		return
 	# error画面
 	py5.text_size(50)
