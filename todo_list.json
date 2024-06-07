@@ -1,5 +1,16 @@
 {
   "todo_name": "My ToDo",
   "todo_description": "This is a description of my ToDo item",
-  "todo_list": []
+  "todo_list": [
+    {
+      "todo_name": "test",
+      "note": "note",
+      "date": "2024-06--7"
+    },
+    {
+      "todo_name": "open campus",
+      "note": "presentation",
+      "date": "2024-06-23"
+    }
+  ]
 }
